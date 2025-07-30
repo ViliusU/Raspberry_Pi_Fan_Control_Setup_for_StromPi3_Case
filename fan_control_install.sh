@@ -55,11 +55,11 @@ EOF
 
 # Set execution permissions for the script
 echo "Setting execute permissions for fan_control.py..."
-sudo chmod +x /home/pi/fan_control.py
+sudo chmod +x /home/fan_control.py
 
 # Modify rc.local to run the script on boot
 echo "Configuring rc.local to run the script on startup..."
-sudo sed -i '$i \python3 /home/pi/fan_control.py &' /etc/rc.local
+sudo sed -i '$i \python3 /home/fan_control.py &' /etc/rc.local
 
 # Ensure rc.local is executable
 echo "Ensuring rc.local is executable..."

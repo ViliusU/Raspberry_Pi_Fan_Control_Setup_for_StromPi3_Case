@@ -2,10 +2,10 @@
 
 # Update and upgrade the system using both apt and apt-get
 echo "Updating and upgrading the system using apt..."
-sudo apt upgrade -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold"
+sudo apt update && sudo apt upgrade -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold"
 
 echo "Updating and upgrading the system using apt-get..."
-sudo apt-get update && sudo apt-get upgrade -y
+sudo apt-get update && sudo apt-get upgrade -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold"
 
 # Install necessary dependencies
 echo "Installing necessary packages..."

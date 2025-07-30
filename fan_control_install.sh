@@ -14,7 +14,7 @@ sudo apt-get install -y python3-gpiozero python3-rpi.gpio
 
 # Create the fan_control.py script
 echo "Creating fan_control.py script..."
-cat << 'EOF' > /home/menulis/fan_control.py
+cat << 'EOF' | sudo tee /home/menulis/fan_control.py > /dev/null
 from gpiozero import CPUTemperature, PWMLED
 from time import sleep
 
@@ -57,17 +57,49 @@ EOF
 echo "Setting execute permissions for fan_control.py..."
 sudo chmod +x /home/menulis/fan_control.py
 
-# Modify rc.local to run the script on boot
-echo "Configuring rc.local to run the script on startup..."
-sudo sed -i '$i \python3 /home/menulis/fan_control.py &' /etc/rc.local
+# Create /etc/rc.local if it doesn't exist
+echo "Creating /etc/rc.local..."
+cat << 'EOF' | sudo tee /etc/rc.local > /dev/null
+#!/bin/bash
+# rc.local startup script
 
-# Ensure rc.local is executable
-echo "Ensuring rc.local is executable..."
+python3 /home/menulis/fan_control.py &
+
+exit 0
+EOF
+
+# Make rc.local executable
+echo "Making /etc/rc.local executable..."
 sudo chmod +x /etc/rc.local
 
-# Enable and check the rc-local service
-echo "Checking rc-local service..."
+# Create the rc-local.service if not present
+echo "Creating rc-local.service..."
+cat << 'EOF' | sudo tee /etc/systemd/system/rc-local.service > /dev/null
+[Unit]
+Description=/etc/rc.local Compatibility
+ConditionPathExists=/etc/rc.local
+After=network.target
+
+[Service]
+Type=forking
+ExecStart=/etc/rc.local start
+TimeoutSec=0
+StandardOutput=tty
+RemainAfterExit=yes
+SysVStartPriority=99
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+# Reload and enable the service
+echo "Enabling rc-local.service..."
+sudo systemctl daemon-reload
 sudo systemctl enable rc-local.service
+sudo systemctl start rc-local.service
+
+# Show service status
+echo "Checking rc-local.service status..."
 sudo systemctl status rc-local.service
 
 # Reboot the system

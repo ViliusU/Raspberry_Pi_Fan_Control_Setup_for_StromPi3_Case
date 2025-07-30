@@ -14,7 +14,7 @@ sudo apt-get install -y python3-gpiozero python3-rpi.gpio
 
 # Create the fan_control.py script
 echo "Creating fan_control.py script..."
-cat << 'EOF' > /home/pi/fan_control.py
+cat << 'EOF' > /home/fan_control.py
 from gpiozero import CPUTemperature, PWMLED
 from time import sleep
 

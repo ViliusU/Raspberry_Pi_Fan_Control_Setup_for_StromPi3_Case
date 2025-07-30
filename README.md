@@ -1,4 +1,3 @@
-
 # Raspberry Pi Fan Control Setup for StromPi3 Case
 
 This script is designed to control the fan in the **STROMPI3 JOY-IT** Raspberry Pi case, which is equipped with a temperature sensor. The fan speed is adjusted based on the CPU temperature of the Raspberry Pi. The script will automatically run on startup, ensuring the fan adjusts its speed according to the temperature without needing manual intervention.
@@ -26,32 +25,52 @@ For more details on the STROMPI3 case, visit the [vendor page](https://joy-it.ne
 
 ## Setup Instructions:
 
-### 1. **Update and Upgrade the System**
-Run the following commands to update and upgrade your Raspberry Pi's package list and installed packages:
+### 1. **Download and Prepare the Installer Script**
+Clone this repository and navigate into it:
 
 ```bash
-sudo apt-get update && sudo apt-get upgrade -y
-sudo apt update && sudo apt upgrade -y
+git clone <repository-url>
+cd <repository-directory>
 ```
 
-### 2. **Install Required Packages**
-Install Python 3 and the necessary libraries for controlling the GPIO pins:
+Make the installer script executable:
 
+```bash
+chmod +x fan_control_install.sh
+```
+
+### 2. **Run the Installer Script**
+Execute the installer script to set up everything automatically:
+
+```bash
+./fan_control_install.sh
+```
+
+This will:
+- Update and upgrade the system (using both apt and apt-get with force-conf options).
+- Install Python 3, `gpiozero`, and `RPi.GPIO`.
+- Create and configure `fan_control.py`.
+- Set up `rc.local` and `rc-local.service` for automatic startup.
+- Reboot the system.
+
+### 3. **Manual Alternative Setup**
+(If you prefer manual steps, follow these commands:)
+
+#### **Update and Upgrade the System**
+```bash
+sudo apt update && sudo apt upgrade -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold"
+sudo apt-get update && sudo apt-get upgrade -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold"
+```
+
+#### **Install Required Packages**
 ```bash
 sudo apt install -y python3-full
 sudo apt-get install -y python3-gpiozero python3-rpi.gpio
 ```
 
-### 3. **Download and Create the Fan Control Script**
-Create the `fan_control.py` script that will manage the fan based on CPU temperature:
-
+#### **Create the Fan Control Script**
 ```bash
-nano /home/pi/fan_control.py
-```
-
-Paste the following Python script into the file:
-
-```python
+sudo tee /home/menulis/fan_control.py << 'EOF'
 from gpiozero import CPUTemperature, PWMLED
 from time import sleep
 
@@ -88,45 +107,56 @@ while True:  # Control loop
     led.value = fanSpeed / 100
 
     sleep(1)
+EOF
 ```
 
-### 4. **Make the Script Executable**
-Grant execution permissions for the script:
-
+#### **Make the Script Executable**
 ```bash
-sudo chmod +x /home/pi/fan_control.py
+sudo chmod +x /home/menulis/fan_control.py
 ```
 
-### 5. **Set the Script to Run on Boot**
-To run the script automatically when the Raspberry Pi boots, modify the `rc.local` file to include the script:
-
+#### **Setup rc.local and Service**
 ```bash
-sudo sed -i '$i \python3 /home/pi/fan_control.py &' /etc/rc.local
-```
+# rc.local
+sudo tee /etc/rc.local << 'EOF'
+#!/bin/bash
+# rc.local startup script
 
-### 6. **Make `rc.local` Executable**
-Ensure that the `rc.local` file is executable so it runs properly:
+python3 /home/menulis/fan_control.py &
 
-```bash
+exit 0
+EOF
+
 sudo chmod +x /etc/rc.local
-```
 
-### 7. **Enable and Check rc.local Service**
-Make sure the `rc.local` service is enabled and check its status:
+# systemd service
+sudo tee /etc/systemd/system/rc-local.service << 'EOF'
+[Unit]
+Description=/etc/rc.local Compatibility
+ConditionPathExists=/etc/rc.local
+After=network.target
 
-```bash
+[Service]
+Type=forking
+ExecStart=/etc/rc.local start
+TimeoutSec=0
+StandardOutput=tty
+RemainAfterExit=yes
+SysVStartPriority=99
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+sudo systemctl daemon-reload
 sudo systemctl enable rc-local.service
-sudo systemctl status rc-local.service
+sudo systemctl start rc-local.service
 ```
 
-### 8. **Reboot Your Raspberry Pi**
-Finally, reboot your Raspberry Pi to apply the changes:
-
+#### **Reboot**
 ```bash
 sudo reboot
 ```
-
-After the reboot, the fan control script will run automatically at startup and adjust the fan speed based on the CPU temperature.
 
 ## Customizing the Script:
 - **`startTemp`**: You can adjust this value to change the temperature at which the fan turns on.

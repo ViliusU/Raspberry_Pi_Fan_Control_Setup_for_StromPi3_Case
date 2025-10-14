@@ -76,7 +76,7 @@ from time import sleep
 
 led = PWMLED(2)  # PWM-Pin (GPIO2)
 
-startTemp = 55  # Temperature at which the fan switches on
+startTemp = 45  # Temperature at which the fan switches on
 
 pTemp = 4  # Proportional part
 iTemp = 0.2  # Integral part

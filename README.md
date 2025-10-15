@@ -165,6 +165,17 @@ sudo reboot
 ## Troubleshooting:
 - If the fan does not respond as expected, check that the Raspberry Pi is reading the CPU temperature correctly.
 - Ensure that the fan is connected to GPIO pin 2 and that it supports PWM control.
+  
+- You can start htop on terminal to see if python3 /home/pi/fan_control.py is running
+#### **To check the temperature:**
+```bash
+vcgencmd measure_temp
+```
+
+#### **To constantly the temperature:**
+```bash
+watch -n 1 vcgencmd measure_temp
+```
 
 ## License:
 This script is provided under the [MIT License](LICENSE).
